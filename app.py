@@ -98,7 +98,7 @@ def get_historical_data():
         conn.close()
     return df
 
-def calculate_savings(cng_price_per_kg, total_cng_cost, distance_covered, petrol_price, petrol_mileage=18.4):
+def calculate_savings(cng_price_per_kg, total_cng_cost, distance_covered, petrol_price= 95, petrol_mileage=18.4):
     try:
         cng_amount_filled = total_cng_cost / cng_price_per_kg
         cng_mileage = distance_covered / cng_amount_filled
