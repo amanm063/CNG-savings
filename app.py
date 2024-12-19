@@ -98,34 +98,41 @@ def create_visualizations(historical_data):
     # Ensure date is datetime
     historical_data['date'] = pd.to_datetime(historical_data['date'])
     
-    # Create a subplot grid of visualizations
+    # Create a subplot grid with more vertical spacing
     fig = make_subplots(
-        rows=3, cols=3, 
+        rows=3, cols=3,
         subplot_titles=(
             'Cumulative Savings', 'Savings per Trip', 
             'CNG vs Petrol Cost', 'Distance Covered', 
             'CNG Mileage', 'Petrol Mileage',
-            'Price per KM Comparison', 'CNG Price per KM Trend', 'Petrol Price per KM Trend'
+            'Price per KM Comparison', 'CNG Price per KM', 'Petrol Price per KM'
         ),
         specs=[[{'type':'scatter'}, {'type':'bar'}, {'type':'scatter'}],
                [{'type':'bar'}, {'type':'scatter'}, {'type':'bar'}],
-               [{'type':'bar'}, {'type':'scatter'}, {'type':'scatter'}]]
+               [{'type':'bar'}, {'type':'scatter'}, {'type':'scatter'}]],
+        vertical_spacing=0.12,  # Increased vertical spacing
+        horizontal_spacing=0.08  # Adjusted horizontal spacing
     )
 
     # Car icon markers
     car_markers = {
-        'green': dict(symbol='triangle-up', size=10, color='green', line=dict(width=2, color='darkgreen')),
-        'red': dict(symbol='triangle-up', size=10, color='red', line=dict(width=2, color='darkred'))
+        'green': dict(symbol='triangle-up', size=8, color='green', line=dict(width=1, color='darkgreen')),
+        'red': dict(symbol='triangle-up', size=8, color='red', line=dict(width=1, color='darkred'))
     }
 
+    # Function to format dates for x-axis
+    def format_date(date):
+        return date.strftime('%d-%b')
+
+    # Add traces with optimized configurations
     # 1. Cumulative Savings Line Chart
     fig.add_trace(
         go.Scatter(
-            x=historical_data['date'], 
+            x=historical_data['date'].apply(format_date), 
             y=historical_data['savings'].cumsum(), 
             mode='lines+markers',
-            name='Cumulative Savings',
-            line=dict(color='#4CAF50', width=3),
+            name='Cumulative',
+            line=dict(color='#4CAF50', width=2),
             marker=car_markers['green']
         ),
         row=1, col=1
@@ -134,9 +141,9 @@ def create_visualizations(historical_data):
     # 2. Savings per Trip Bar Chart
     fig.add_trace(
         go.Bar(
-            x=historical_data['date'].dt.strftime('%Y-%m-%d'), 
+            x=historical_data['date'].apply(format_date), 
             y=historical_data['savings'], 
-            name='Trip Savings',
+            name='Savings',
             marker_color='#4CAF50'
         ),
         row=1, col=2
@@ -145,22 +152,22 @@ def create_visualizations(historical_data):
     # 3. CNG vs Petrol Cost
     fig.add_trace(
         go.Scatter(
-            x=historical_data['date'], 
+            x=historical_data['date'].apply(format_date), 
             y=historical_data['cng_price_per_kg'], 
             mode='lines+markers', 
-            name='CNG Price',
-            line=dict(color='green'),
+            name='CNG',
+            line=dict(color='green', width=2),
             marker=car_markers['green']
         ),
         row=1, col=3
     )
     fig.add_trace(
         go.Scatter(
-            x=historical_data['date'], 
+            x=historical_data['date'].apply(format_date), 
             y=historical_data['petrol_price'], 
             mode='lines+markers', 
-            name='Petrol Price',
-            line=dict(color='red'),
+            name='Petrol',
+            line=dict(color='red', width=2),
             marker=car_markers['red']
         ),
         row=1, col=3
@@ -169,9 +176,9 @@ def create_visualizations(historical_data):
     # 4. Distance Covered Bar Chart
     fig.add_trace(
         go.Bar(
-            x=historical_data['date'].dt.strftime('%Y-%m-%d'), 
+            x=historical_data['date'].apply(format_date), 
             y=historical_data['distance_covered'], 
-            name='Distance Covered',
+            name='Distance',
             marker_color='#4CAF50'
         ),
         row=2, col=1
@@ -180,11 +187,11 @@ def create_visualizations(historical_data):
     # 5. CNG Mileage Scatter
     fig.add_trace(
         go.Scatter(
-            x=historical_data['date'], 
+            x=historical_data['date'].apply(format_date), 
             y=historical_data['cng_mileage'], 
             mode='lines+markers',
-            name='CNG Mileage',
-            line=dict(color='green'),
+            name='CNG km/kg',
+            line=dict(color='green', width=2),
             marker=car_markers['green']
         ),
         row=2, col=2
@@ -193,19 +200,19 @@ def create_visualizations(historical_data):
     # 6. Petrol Mileage Bar Chart
     fig.add_trace(
         go.Bar(
-            x=historical_data['date'].dt.strftime('%Y-%m-%d'), 
+            x=historical_data['date'].apply(format_date), 
             y=historical_data['petrol_mileage'], 
-            name='Petrol Mileage',
+            name='Petrol km/l',
             marker_color='red'
         ),
         row=2, col=3
     )
 
-    # 7. Price per KM Comparison (Bar Chart)
+    # 7. Price per KM Comparison
     fig.add_trace(
         go.Bar(
-            name='CNG ₹/km',
-            x=historical_data['date'].dt.strftime('%Y-%m-%d'),
+            name='CNG/km',
+            x=historical_data['date'].apply(format_date),
             y=historical_data['cng_price_per_km'],
             marker_color='green'
         ),
@@ -213,76 +220,97 @@ def create_visualizations(historical_data):
     )
     fig.add_trace(
         go.Bar(
-            name='Petrol ₹/km',
-            x=historical_data['date'].dt.strftime('%Y-%m-%d'),
+            name='Petrol/km',
+            x=historical_data['date'].apply(format_date),
             y=historical_data['petrol_price_per_km'],
             marker_color='red'
         ),
         row=3, col=1
     )
 
-    # 8. CNG Price per KM Trend (Area Chart)
+    # 8. CNG Price per KM Trend
     fig.add_trace(
         go.Scatter(
-            x=historical_data['date'],
+            x=historical_data['date'].apply(format_date),
             y=historical_data['cng_price_per_km'],
             fill='tozeroy',
-            name='CNG ₹/km Trend',
+            name='CNG/km',
             line=dict(color='green', width=2),
             marker=car_markers['green']
         ),
         row=3, col=2
     )
 
-    # 9. Petrol Price per KM Trend (Area Chart)
+    # 9. Petrol Price per KM Trend
     fig.add_trace(
         go.Scatter(
-            x=historical_data['date'],
+            x=historical_data['date'].apply(format_date),
             y=historical_data['petrol_price_per_km'],
             fill='tozeroy',
-            name='Petrol ₹/km Trend',
+            name='Petrol/km',
             line=dict(color='red', width=2),
             marker=car_markers['red']
         ),
         row=3, col=3
     )
 
-    # Update layout
+    # Update layout with mobile-friendly configurations
     fig.update_layout(
-        height=1200,
-        width=1200,
-        title_text="CNG Savings & Performance Dashboard",
-        template='plotly_dark',
+        height=1400,  # Increased height for better mobile viewing
         showlegend=True,
-        title_font_size=20,
-        barmode='group'
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1,
+            font=dict(size=10)
+        ),
+        title=dict(
+            text="CNG Savings Dashboard",
+            font=dict(size=16)
+        ),
+        template='plotly_dark',
+        margin=dict(l=10, r=10, t=100, b=10)  # Adjusted margins
     )
+
+    # Update axes for better mobile visibility
+    fig.update_xaxes(
+        tickangle=45,
+        tickfont=dict(size=8),
+        title_font=dict(size=10),
+        title_standoff=5
+    )
+    fig.update_yaxes(
+        tickfont=dict(size=8),
+        title_font=dict(size=10),
+        title_standoff=5
+    )
+
+    # Update subplot titles
+    fig.update_annotations(font_size=10)
 
     return fig
 
 def main():
     st.title('🚗 CNG Savings Calculator')
     
-    # Input section
+    # Input section with mobile-friendly layout
     st.header('Trip Details')
     
-    # Create columns for inputs
     col1, col2 = st.columns(2)
     
     with col1:
-        # CNG Details
         st.subheader('CNG Details')
-        cng_price_per_kg = st.number_input('CNG Price per kg (₹)', min_value=0.0, step=0.1)
-        total_cng_cost = st.number_input('Total CNG Filling Cost (₹)', min_value=0.0, step=10.0)
-        distance_covered = st.number_input('Distance Covered (km)', min_value=0.0, step=1.0)
+        cng_price_per_kg = st.number_input('CNG Price/kg (₹)', min_value=0.0, step=0.1)
+        total_cng_cost = st.number_input('Total CNG Cost (₹)', min_value=0.0, step=10.0)
+        distance_covered = st.number_input('Distance (km)', min_value=0.0, step=1.0)
     
     with col2:
-        # Petrol Details
-        st.subheader('Petrol Comparison')
-        petrol_price = st.number_input('Current Petrol Price (₹/liter)', min_value=0.0, step=1.0)
-        petrol_mileage = st.number_input('Petrol Mileage (km/l)', min_value=0.0, step=0.1, value=18.4)
+        st.subheader('Petrol Details')
+        petrol_price = st.number_input('Petrol Price (₹/L)', min_value=0.0, step=1.0)
+        petrol_mileage = st.number_input('Petrol Mileage (km/L)', min_value=0.0, step=0.1, value=18.4)
     
-    # Calculate button
     if st.button('Calculate Savings'):
         result = calculate_savings(
             cng_price_per_kg, 
@@ -293,7 +321,6 @@ def main():
         )
         
         if result is not None:
-            # Save trip to database
             insert_trip_data(
                 cng_price_per_kg, 
                 total_cng_cost, 
@@ -307,139 +334,164 @@ def main():
                 result['petrol_price_per_km']
             )
             
-            # Display results
             st.header('Trip Analysis')
             
-            # Metrics
-            col1, col2, col3, col4, col5 = st.columns(5)
-            col1.metric('CNG Amount Filled', f'{result["cng_amount_filled"]:.2f} kg')
-            col2.metric('CNG Mileage', f'{result["cng_mileage"]:.2f} km/kg')
-            col3.metric('Trip Savings', f'₹{result["savings"]:.2f}')
-            col4.metric('CNG Price/km', f'₹{result["cng_price_per_km"]:.2f}')
-            col5.metric('Petrol Price/km', f'₹{result["petrol_price_per_km"]:.2f}')
+            # Responsive metrics layout
+            cols = st.columns([1, 1, 1, 1, 1])
+            cols[0].metric('CNG (kg)', f"{result['cng_amount_filled']:.1f}")
+            cols[1].metric('CNG km/kg', f"{result['cng_mileage']:.1f}")
+            cols[2].metric('Savings', f"₹{result['savings']:.0f}")
+            cols[3].metric('CNG/km', f"₹{result['cng_price_per_km']:.1f}")
+            cols[4].metric('Petrol/km', f"₹{result['petrol_price_per_km']:.1f}")
     
-    # Historical Data Section
     st.header('Trip History')
-    
     historical_data = get_historical_data()
     
     if not historical_data.empty:
         total_savings = historical_data['savings'].sum()
-        st.metric('Total Cumulative Savings', f'₹{total_savings:.2f}')
+        st.metric('Total Savings', f'₹{total_savings:.0f}')
         
-        # Add a copy of the dataframe with a remove column
         df_display = historical_data.copy()
         df_display['remove'] = False
         
-        # Editable data editor with remove functionality
+        # Mobile-friendly data editor
         edited_df = st.data_editor(
-            df_display, 
+            df_display,
             num_rows="dynamic",
             column_config={
-                "remove": st.column_config.CheckboxColumn("Remove"),
+                "remove": st.column_config.CheckboxColumn("❌"),
                 "id": "ID",
-                "date": st.column_config.DateColumn("Date", format="YYYY-MM-DD HH:mm:ss"),
-                "cng_price_per_kg": st.column_config.NumberColumn("CNG Price/kg (₹)", format="%.2f"),
-                "total_cng_cost": st.column_config.NumberColumn("Total CNG Cost (₹)", format="%.2f"),
-                "cng_amount_filled": st.column_config.NumberColumn("CNG Amount (kg)", format="%.2f"),
-                "distance_covered": st.column_config.NumberColumn("Distance (km)", format="%.2f"),
-                "cng_mileage": st.column_config.NumberColumn("CNG Mileage (km/kg)", format="%.2f"),
-                "petrol_price": st.column_config.NumberColumn("Petrol Price (₹/l)", format="%.2f"),
-                "petrol_mileage": st.column_config.NumberColumn("Petrol Mileage (km/l)", format="%.2f"),
-                "savings": st.column_config.NumberColumn("Savings (₹)", format="%.2f"),
-                "cng_price_per_km": st.column_config.NumberColumn("CNG ₹/km", format="%.2f"),
-                "petrol_price_per_km": st.column_config.NumberColumn("Petrol ₹/km", format="%.2f")
-            }
+                "date": st.column_config.DateColumn("Date", format="DD-MMM"),
+                "cng_price_per_kg": st.column_config.NumberColumn("CNG/kg", format="%.1f"),
+                "total_cng_cost": st.column_config.NumberColumn("Cost", format="%.0f"),
+                "cng_amount_filled": st.column_config.NumberColumn("CNG kg", format="%.1f"),
+                "distance_covered": st.column_config.NumberColumn("Dist", format="%.0f"),
+                "cng_mileage": st.column_config.NumberColumn("km/kg", format="%.1f"),
+                "petrol_price": st.column_config.NumberColumn("Pet/L", format="%.1f"),
+                "petrol_mileage": st.column_config.NumberColumn("km/L", format="%.1f"),
+                "savings": st.column_config.NumberColumn("Save", format="%.0f"),
+                "cng_price_per_km": st.column_config.NumberColumn("CNG/km", format="%.1f"),
+                "petrol_price_per_km": st.column_config.NumberColumn("Pet/km", format="%.1f")
+            },
+            hide_index=True
         )
         
-# Get rows to remove
         rows_to_remove = edited_df[edited_df['remove']]['id'].tolist()
         
-        # Remove button
-        if st.button('Remove Selected Entries'):
+        if st.button('Remove Selected'):
             if rows_to_remove:
                 remove_trip_data(rows_to_remove)
                 st.rerun()
         
-        # Additional Metrics Section
-        st.header('Overall Analysis')
-        metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
+        st.header('Analysis')
+        cols = st.columns(4)
         
-        with metric_col1:
+        with cols[0]:
             avg_cng_price = historical_data['cng_price_per_km'].mean()
-            st.metric('Average CNG Price/km', f'₹{avg_cng_price:.2f}')
+            st.metric('Avg CNG/km', f'₹{avg_cng_price:.1f}')
             
-        with metric_col2:
+        with cols[1]:
             avg_petrol_price = historical_data['petrol_price_per_km'].mean()
-            st.metric('Average Petrol Price/km', f'₹{avg_petrol_price:.2f}')
+            st.metric('Avg Petrol/km', f'₹{avg_petrol_price:.1f}')
             
-        with metric_col3:
+        with cols[2]:
             price_difference = avg_petrol_price - avg_cng_price
-            st.metric('Average Price Difference/km', f'₹{price_difference:.2f}')
+            st.metric('Diff/km', f'₹{price_difference:.1f}')
             
-        with metric_col4:
+        with cols[3]:
             total_distance = historical_data['distance_covered'].sum()
-            st.metric('Total Distance Covered', f'{total_distance:.1f} km')
+            st.metric('Total km', f'{total_distance:.0f}')
         
-        # Plotly Visualizations
-        st.header('Detailed Visualizations')
-        if st.button('Generate Detailed Visualizations'):
+        st.header('Visualizations')
+        if st.button('Show Charts'):
             fig = create_visualizations(historical_data)
             st.plotly_chart(fig, use_container_width=True)
             
-            # Additional single-chart visualizations
-            st.subheader('Price per KM Comparison Over Time')
+            # Mobile-friendly single charts
             price_comparison_fig = go.Figure()
             price_comparison_fig.add_trace(
                 go.Scatter(
-                    x=historical_data['date'],
+                    x=historical_data['date'].apply(lambda x: x.strftime('%d-%b')),
                     y=historical_data['cng_price_per_km'],
-                    name='CNG ₹/km',
+                    name='CNG/km',
                     line=dict(color='green', width=2),
                     mode='lines+markers'
                 )
             )
             price_comparison_fig.add_trace(
                 go.Scatter(
-                    x=historical_data['date'],
+                    x=historical_data['date'].apply(lambda x: x.strftime('%d-%b')),
                     y=historical_data['petrol_price_per_km'],
-                    name='Petrol ₹/km',
+                    name='Petrol/km',
                     line=dict(color='red', width=2),
                     mode='lines+markers'
                 )
             )
             price_comparison_fig.update_layout(
                 template='plotly_dark',
-                height=500,
-                title='CNG vs Petrol Price per KM Trend',
-                xaxis_title='Date',
-                yaxis_title='Price per KM (₹)',
-                showlegend=True
+                height=400,
+                title=dict(
+                    text='Price per KM Trend',
+                    font=dict(size=14)
+                ),
+                xaxis=dict(
+                    title='Date',
+                    tickangle=45,
+                    tickfont=dict(size=10)
+                ),
+                yaxis=dict(
+                    title='Price per KM (₹)',
+                    tickfont=dict(size=10)
+                ),
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.02,
+                    xanchor="right",
+                    x=1,
+                    font=dict(size=10)
+                ),
+                margin=dict(l=10, r=10, t=50, b=10)
             )
             st.plotly_chart(price_comparison_fig, use_container_width=True)
             
-            # Savings Distribution
-            st.subheader('Savings Distribution')
+            # Mobile-friendly savings distribution
             savings_fig = px.histogram(
                 historical_data,
                 x='savings',
-                nbins=20,
-                title='Distribution of Savings per Trip',
+                nbins=15,
+                title='Savings Distribution',
                 template='plotly_dark'
             )
             savings_fig.update_layout(
-                xaxis_title='Savings (₹)',
-                yaxis_title='Number of Trips',
-                showlegend=False
+                height=400,
+                title=dict(
+                    text='Savings Distribution',
+                    font=dict(size=14)
+                ),
+                xaxis=dict(
+                    title='Savings (₹)',
+                    tickfont=dict(size=10)
+                ),
+                yaxis=dict(
+                    title='Number of Trips',
+                    tickfont=dict(size=10)
+                ),
+                showlegend=False,
+                margin=dict(l=10, r=10, t=50, b=10)
             )
             st.plotly_chart(savings_fig, use_container_width=True)
             
     else:
-        st.write("No trip history available yet.")
+        st.info("No trip history available yet. Add your first trip to see the analysis!")
         
     # Footer
     st.markdown('---')
-    st.markdown('Built with Streamlit by Aman🎈 | Track your CNG savings and contribute to a greener future 🌱')
+    st.markdown(
+        '<div style="text-align: center; color: #666;">Built with ❤️ by Aman | '
+        'Track your CNG savings and contribute to a greener future 🌱</div>', 
+        unsafe_allow_html=True
+    )
 
 if __name__ == '__main__':
     main()
