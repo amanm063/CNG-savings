@@ -5,5 +5,5 @@ matplotlib
 plotly
 streamlit
 datetime
-supabase-py 
+# supabase-py 
 supabase
