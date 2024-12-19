@@ -1,7 +1,7 @@
 import streamlit as st
 # Set page config
 st.set_page_config(
-    page_title="CNG Savings Tracker",
+    page_title="FuelWise - CNG Savings Tracker",
     page_icon="🚗",
     layout="wide"
 )
@@ -267,7 +267,7 @@ def create_visualizations(historical_data):
             font=dict(size=10)
         ),
         title=dict(
-            text="CNG Savings Dashboard",
+            text="FuelWise - CNG Savings Dashboard",
             font=dict(size=16)
         ),
         template='plotly_dark',
@@ -293,7 +293,7 @@ def create_visualizations(historical_data):
     return fig
 
 def main():
-    st.title('🚗 CNG Savings Calculator')
+    st.title('🚗 FuelWise - CNG Savings Calculator')
     
     # Input section with mobile-friendly layout
     st.header('Trip Details')
